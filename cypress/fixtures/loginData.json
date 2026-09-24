@@ -1,0 +1,15 @@
+{
+  "validUser": {
+    "username": "Admin",
+    "password": "admin123"
+  },
+  "invalidUser": {
+    "username": "AdMin",
+    "wrongPassword": "admin125"
+  },
+  "messages": {
+    "required": "Required",
+    "invalidCredentials": "Invalid credentials",
+    "resetSuccess": "Reset Password link sent successfully"
+  }
+}

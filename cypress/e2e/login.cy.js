@@ -213,4 +213,5 @@ describe('Fitur Login OrangeHRM', () => {
     cy.contains('Logout').click();
   });
 
+
 });

@@ -44,6 +44,16 @@ class LoginPage {
   clickResetPassword() {
     cy.get('button[type="submit"]').should('be.visible').click();
   }
+
+  visitLoginPage() {
+  cy.visit('https://opensource-demo.orangehrmlive.com/web/index.php/auth/login', {
+    timeout: 120000,
+    failOnStatusCode: false
+  });
+  // Pastikan form username langsung dicek kehadirannya
+  cy.get('input[name="username"]', { timeout: 30000 }).should('be.visible');
+}
   }
 
 export default new LoginPage();
+
