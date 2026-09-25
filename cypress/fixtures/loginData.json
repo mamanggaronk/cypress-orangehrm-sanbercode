@@ -4,12 +4,27 @@
     "password": "admin123"
   },
   "invalidUser": {
-    "username": "AdMin",
-    "wrongPassword": "admin125"
+    "wrongPassword": "admin125",
+    "leadingSpaceUser": "    Admin",
+    "leadingSpacePass": "    admin123",
+    "mixedCaseUser": "AdMIn",
+    "wrongCasePass": "ADmin123"
   },
   "messages": {
     "required": "Required",
     "invalidCredentials": "Invalid credentials",
+    "dashboard": "Dashboard",
     "resetSuccess": "Reset Password link sent successfully"
+  },
+  "footerLinks": {
+    "social": [
+      "linkedin.com/company/orangehrm",
+      "facebook.com/OrangeHRM",
+      "twitter.com/orangehrm",
+      "youtube.com/c/OrangeHRMInc"
+    ],
+    "companyUrl": "orangehrm.com"
   }
+
+
 }

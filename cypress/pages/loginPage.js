@@ -1,5 +1,4 @@
 class LoginPage {
-  // Elements & Selectors
   elements = {
     usernameInput: () => cy.get('input[name="username"]'),
     passwordInput: () => cy.get('input[name="password"]'),
@@ -8,52 +7,55 @@ class LoginPage {
     alertErrorMessage: () => cy.get('.oxd-alert-content-text'),
     fieldErrorMessage: () => cy.get('.oxd-input-field-error-message'),
     dashboardHeader: () => cy.get('.oxd-topbar-header-title'),
-    resetPasswordHeader: () => cy.get('.orangehrm-forgot-password-title'),
-    resetPasswordButton: () => cy.get('.orangehrm-forgot-password-button--reset')
+    
+    
+    resetPasswordInput: () => cy.get('input[name="username"]'),
+    resetPasswordButton: () => cy.get('button.orangehrm-forgot-password-button--reset'),
+    resetSuccessTitle: () => cy.get('.orangehrm-forgot-password-title'),
+    userDropdown: () => cy.get('.oxd-userdropdown-tab'),
+    logoutOption: () => cy.contains('.oxd-userdropdown-link', 'Logout'),
+    socialMediaLinks: () => cy.get('.orangehrm-login-footer-sm a'),
+    companyLink: () => cy.contains('a', 'OrangeHRM, Inc')
   };
 
-  // Actions
   visitLoginPage() {
     cy.clearCookies();
     cy.clearLocalStorage();
-    cy.visit('https://opensource-demo.orangehrmlive.com/web/index.php/auth/login');
+    cy.visit('https://opensource-demo.orangehrmlive.com/web/index.php/auth/login', {
+      timeout: 120000,
+      failOnStatusCode: false
+    });
+    this.elements.usernameInput().should('be.visible');
   }
 
   inputUsername(username) {
-    this.elements.usernameInput()
-      .should('be.visible')
-      .clear()
-      .type(username);
+    this.elements.usernameInput().should('be.visible').clear().type(username);
   }
 
   inputPassword(password) {
-    this.elements.passwordInput()
-      .should('be.visible')
-      .clear()
-      .type(password);
+    this.elements.passwordInput().should('be.visible').clear().type(password);
   }
 
   clickLogin() {
-    this.elements.loginButton().click();
+    this.elements.loginButton().should('be.visible').click();
   }
 
   clickForgotPassword() {
-    cy.contains('p', 'Forgot your password?').should('be.visible').click();
+    this.elements.forgotPasswordLink().should('be.visible').click();
+  }
+
+  inputResetUsername(username) {
+    this.elements.resetPasswordInput().should('be.visible').clear().type(username);
   }
 
   clickResetPassword() {
-    cy.get('button[type="submit"]').should('be.visible').click();
+    this.elements.resetPasswordButton().should('be.visible').click();
   }
 
-  visitLoginPage() {
-  cy.visit('https://opensource-demo.orangehrmlive.com/web/index.php/auth/login', {
-    timeout: 120000,
-    failOnStatusCode: false
-  });
-  // Pastikan form username langsung dicek kehadirannya
-  cy.get('input[name="username"]', { timeout: 30000 }).should('be.visible');
-}
+  logout() {
+    this.elements.userDropdown().should('be.visible').click();
+    this.elements.logoutOption().should('be.visible').click();
   }
+}
 
 export default new LoginPage();
-

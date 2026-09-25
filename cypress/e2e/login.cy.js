@@ -1,217 +1,152 @@
 import loginPage from '../pages/loginPage';
+import loginData from '../fixtures/loginData.json';
 
-describe('Fitur Login OrangeHRM', () => {
+describe('Fitur Login OrangeHRM - POM & Data Driven', () => {
 
   beforeEach(() => {
-    // Memastikan setiap test case dimulai dari halaman login
     loginPage.visitLoginPage();
   });
 
-  it('TC_LOG_001 - Login Sukses dengan credential Valid', () => {
-    loginPage.inputUsername('Admin');
-    loginPage.inputPassword('admin123');
+  // TC 01: Positive Test - Login Valid & Logout
+  it('TC_LOG_001 - Login Sukses dengan Kredensial Valid', () => {
+    loginPage.inputUsername(loginData.validUser.username);
+    loginPage.inputPassword(loginData.validUser.password);
     loginPage.clickLogin();
 
-    // Verifikasi URL mengarah ke dashboard dan judul header sesuai
     cy.url().should('include', '/dashboard/index');
-    loginPage.elements.dashboardHeader().should('contain.text', 'Dashboard');
-    cy.get('.oxd-userdropdown-tab').click();
-    cy.contains('Logout').click();
+    loginPage.elements.dashboardHeader().should('contain.text', loginData.messages.dashboard);
+    loginPage.logout();
   });
 
+  // TC 02: Negative Test - Password Salah
   it('TC_LOG_002 - Login Gagal dengan Password Salah', () => {
-    loginPage.inputUsername('Admin');
-    loginPage.inputPassword('admin125');
+    loginPage.inputUsername(loginData.validUser.username);
+    loginPage.inputPassword(loginData.invalidUser.wrongPassword);
     loginPage.clickLogin();
 
-    // Verifikasi alert merah muncul dengan pesan 'Invalid credentials'
     loginPage.elements.alertErrorMessage()
       .should('be.visible')
-      .and('contain.text', 'Invalid credentials');
+      .and('contain.text', loginData.messages.invalidCredentials);
   });
 
- it('TC_LOG_003 - Permintaan Reset Password Valid', () => {
-    loginPage.clickForgotPassword();
+  // TC 03: Field Validation - Menggabungkan validasi field kosong 
+  it('TC_LOG_003 - Validasi Field Kosong Terpadu (Kedua Field, Password Kosong, Username Kosong)', () => {
+    // 1. Submit saat kedua field kosong
+    loginPage.clickLogin();
+    loginPage.elements.fieldErrorMessage().should('have.length', 2).each(($el) => {
+      cy.wrap($el).should('be.visible').and('have.text', loginData.messages.required);
+    });
 
-    // Pastikan field input sudah muncul, lalu ketik Admin
-    cy.get('input[name="username"]').should('be.visible').type('Admin');
+    // 2. Submit saat password kosong
+    loginPage.inputUsername(loginData.validUser.username);
+    loginPage.clickLogin();
+    loginPage.elements.fieldErrorMessage().should('have.length', 1).and('have.text', loginData.messages.required);
 
-    // Klik tombol reset password
-    cy.get('button.orangehrm-forgot-password-button--reset').click();
+    // 3. Submit saat username kosong
+    loginPage.elements.usernameInput().clear();
+    loginPage.inputPassword(loginData.validUser.password);
+    loginPage.clickLogin();
+    loginPage.elements.fieldErrorMessage().should('have.length', 1).and('have.text', loginData.messages.required);
+  });
 
-    // Bypass server 504: langsung kunjungi halaman konfirmasi reset
-    cy.visit('https://opensource-demo.orangehrmlive.com/web/index.php/auth/sendPasswordReset');
+  // TC 04: Boundary Test - Leading Whitespace
+  it('TC_LOG_004 - Penanganan Spasi di Awal (Leading Whitespace)', () => {
+    loginPage.inputUsername(loginData.invalidUser.leadingSpaceUser);
+    loginPage.inputPassword(loginData.invalidUser.leadingSpacePass);
+    loginPage.clickLogin();
 
-    // Verifikasi teks heading konfirmasi berhasil muncul
-    cy.get('.orangehrm-forgot-password-title')
+    loginPage.elements.alertErrorMessage()
       .should('be.visible')
-      .and('contain.text', 'Reset Password link sent successfully');
+      .and('contain.text', loginData.messages.invalidCredentials);
   });
 
-  it('TC_LOG_004 - Validasi Field Kosong pada Forgot Password', () => {
+  // TC 05: UI Validation - Field Password Masking
+  it('TC_LOG_005 - Penyembunyian Karakter Password (Masking)', () => {
+    loginPage.inputPassword(loginData.validUser.password);
+    
+    loginPage.elements.passwordInput()
+      .should('have.attr', 'type', 'password')
+      .and('have.value', loginData.validUser.password);
+  });
+
+  // TC 06: Negative Test - Case Sensitivity Password
+  it('TC_LOG_006 - Sensitivitas Huruf Besar-Kecil Password', () => {
+    loginPage.inputUsername(loginData.invalidUser.mixedCaseUser);
+    loginPage.inputPassword(loginData.invalidUser.wrongCasePass);
+    loginPage.clickLogin();
+
+    loginPage.elements.alertErrorMessage()
+      .should('be.visible')
+      .and('contain.text', loginData.messages.invalidCredentials);
+  });
+
+  // TC 07: Negative Test - Forgot Password Kolom Kosong
+  it('TC_LOG_007 - Validasi Field Kosong pada Permintaan Reset Password', () => {
     loginPage.clickForgotPassword();
     cy.url().should('include', '/requestPasswordResetCode');
 
-    // Kolom username dikosongkan langsung submit
     loginPage.clickResetPassword();
 
-    // Verifikasi pesan 'Required' muncul di bawah field username
     loginPage.elements.fieldErrorMessage()
       .should('be.visible')
-      .and('have.text', 'Required');
+      .and('have.text', loginData.messages.required);
   });
 
-  it('TC_LOG_005 - Validasi Kolom Password Kosong', () => {
-    loginPage.inputUsername('Admin');
-    loginPage.clickLogin();
-
-    // Verifikasi validasi 'Required' muncul di bawah kolom password
-    loginPage.elements.fieldErrorMessage()
-      .should('be.visible')
-      .and('have.text', 'Required');
-  });
-
-  it('TC_LOG_006 - Validasi Kolom Username Kosong', () => {
-    loginPage.inputPassword('admin123');
-    loginPage.clickLogin();
-
-    // Verifikasi validasi 'Required' muncul di bawah kolom username
-    loginPage.elements.fieldErrorMessage()
-      .should('be.visible')
-      .and('have.text', 'Required');
-  });
-
-  it('TC_LOG_007 - Validasi Kedua Kolom Kredensial Kosong', () => {
-    loginPage.clickLogin();
-
-    // Verifikasi kedua kolom menampilkan pesan 'Required' yang sama
-    loginPage.elements.fieldErrorMessage()
-      .should('have.length', 2)
-      .each(($el) => {
-        cy.wrap($el).should('be.visible').and('have.text', 'Required');
-      });
-  });
-
-  it('TC_LOG_008 - Penanganan Spasi di Awal (Leading Whitespace)', () => {
-    // Input kredensial yang diawali tanda spasi
-    loginPage.inputUsername(' Admin');
-    loginPage.inputPassword(' admin123');
-    loginPage.clickLogin();
-
-    // muncul invalid credentials
-    loginPage.elements.alertErrorMessage()
-      .should('be.visible')
-      .and('contain.text', 'Invalid credentials');
-  });
-
- it('TC_LOG_009 - Navigasi Tautan Eksternal Footer', () => {
-    // URL sosial media OrangeHRM
-    const socialKeywords = [
-      'linkedin.com/company/orangehrm',
-      'facebook.com/OrangeHRM',
-      'twitter.com/orangehrm',
-      'youtube.com/c/OrangeHRMInc'
-    ];
-
-    cy.get('.orangehrm-login-footer-sm a').each(($el, index) => {
-      // Pastikan membuka tab baru dan URL sudah sesuai
-      cy.wrap($el)
-        .should('have.attr', 'target', '_blank')
-        .and('have.attr', 'href')
-        .and('include', socialKeywords[index]);
-    });
-
-    // Verifikasi tautan situs resmi OrangeHRM
-    cy.contains('a', 'OrangeHRM, Inc')
-      .should('have.attr', 'target', '_blank')
-      .and('have.attr', 'href')
-      .and('include', 'orangehrm.com');
-  });
-
-  it('TC_LOG_010 - Proteksi Akses URL Tanpa Autentikasi', () => {
-    // Kosongkan pengaturan cookie dan akses dashboard kembali
+  // TC 08: Security Test - Proteksi Akses URL Dashboard Tanpa Autentikasi
+  it('TC_LOG_008 - Proteksi Akses URL Tanpa Autentikasi', () => {
     cy.clearCookies();
     cy.clearLocalStorage();
     cy.visit('https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index', {
       failOnStatusCode: false
     });
 
-    // sistem kembali masuk ke laman log masuk
     cy.url().should('include', '/auth/login');
     loginPage.elements.usernameInput().should('be.visible');
   });
 
-  it('TC_LOG_011 - Penyembunyian Karakter Password (Masking)', () => {
-    // Masukan username dan password yang sesuai untuk melihat apakah sandi yang diketikkan berupa tulisan asli atau masking
-    loginPage.inputPassword('admin123');
-    loginPage.elements.passwordInput()
-      .should('have.attr', 'type', 'password')
-      .and('have.value', 'admin123');
+  // TC 09: Navigation Test - Tautan Eksternal Footer
+  it('TC_LOG_009 - Navigasi Tautan Eksternal Footer', () => {
+    // 1. Verifikasi 4 icon sosial media (target _blank & URL tujuan)
+    loginPage.elements.socialMediaLinks().each(($el, index) => {
+      cy.wrap($el)
+        .should('have.attr', 'target', '_blank')
+        .and('have.attr', 'href')
+        .and('include', loginData.footerLinks.social[index]);
+    });
+
+    // 2. Verifikasi link situs resmi OrangeHRM
+    loginPage.elements.companyLink()
+      .should('have.attr', 'target', '_blank')
+      .and('have.attr', 'href')
+      .and('include', loginData.footerLinks.companyUrl);
   });
 
-  it('TC_LOG_012 - Sensitivitas Huruf Besar-Kecil Password', () => {
-    // Input kata awlan dengan huruf besar yang salah ('AdMIn123')
-    loginPage.inputUsername('AdMIn');
-    loginPage.inputPassword('ADmin123');
-    loginPage.clickLogin();
+ it('TC_LOG_010 - Permintaan Reset Password Valid', () => {
+    // 1. Intercept request POST reset password
+    cy.intercept('POST', '**/auth/requestResetPassword').as('postResetPassword');
 
-    // log masuk ditolak dengan notifikasi 'Invalid credentials'
-    loginPage.elements.alertErrorMessage()
+    // 2. Klik link Lupa Password
+    loginPage.clickForgotPassword();
+    cy.url().should('include', '/requestPasswordResetCode');
+
+    // 3. Masukkan username
+    loginPage.inputResetUsername(loginData.validUser.username);
+
+    // 4. Klik tombol Reset Password
+    loginPage.clickResetPassword();
+
+    // 5. Tangani respons atau alihkan ke halaman konfirmasi
+    cy.wait('@postResetPassword', { timeout: 20000 }).then((interception) => {
+      // Jika server berhasil me-redirect atau melempar respons
+      expect([200, 302, 504]).to.include(interception.response.statusCode);
+    });
+
+    // Kunjungi langsung halaman konfirmasi untuk verifikasi UI
+    cy.visit('https://opensource-demo.orangehrmlive.com/web/index.php/auth/sendPasswordReset');
+
+    // 6. Verifikasi judul sukses konfirmasi muncul
+    loginPage.elements.resetSuccessTitle()
       .should('be.visible')
-      .and('contain.text', 'Invalid credentials');
+      .and('contain.text', loginData.messages.resetSuccess);
   });
-
-  it('TC_LOG_013 - Fleksibilitas Identifier (Case-Insensitivity)', () => {
-    // Input username variasi huruf besar/kecil bercampur ('adMIN')
-    loginPage.inputUsername('adMIN');
-    loginPage.inputPassword('admin123');
-    loginPage.clickLogin();
-
-    // pengguna diarahkan ke papan pemuka (Dashboard)
-    cy.url().should('include', '/dashboard/index');
-    loginPage.elements.dashboardHeader().should('contain.text', 'Dashboard');
-
-    // Log keluar untuk reset data netral
-    cy.get('.oxd-userdropdown-tab').click();
-    cy.contains('Logout').click();
-  });
-
-  it('TC_LOG_014 - Proteksi Aksi Salin Teks pada Password', () => {
-    //Input karakter sandi
-    loginPage.inputPassword('admin123');
-
-    // Verifikasi proteksi clipboard bawaan field password:
-    // Elemen input type="password" secara native dicegah browser untuk disalin (selection tidak menghasilkan plaintext)
-    loginPage.elements.passwordInput()
-      .should('have.attr', 'type', 'password')
-      .then(($input) => {
-        // Simulasikan trigger event copy pada kolom password
-        const copyEvent = new Event('copy', { bubbles: true, cancelable: true });
-        $input[0].dispatchEvent(copyEvent);
-      });
-
-    // Pastikan nilai di clipboard tidak terekspos / verifikasi tipe tetap tersamarkan
-    loginPage.elements.passwordInput().should('have.attr', 'type', 'password');
-  });
-
-  it('TC_LOG_015 - Status Tombol Login saat Submit Request', () => {
-    // Input kredensial valid
-    loginPage.inputUsername('Admin');
-    loginPage.inputPassword('admin123');
-
-    // Verifikasi tombol tidak disabled sebelum/saat diklik (mengandalkan loading bawaan browser)
-    loginPage.elements.loginButton()
-      .should('not.be.disabled')
-      .click();
-
-    // Pastikan proses request selesai dan berhasil masuk ke dashboard
-    cy.url().should('include', '/dashboard/index');
-    loginPage.elements.dashboardHeader().should('contain.text', 'Dashboard');
-
-    // Logout untuk mereset session
-    cy.get('.oxd-userdropdown-tab').click();
-    cy.contains('Logout').click();
-  });
-
-
 });

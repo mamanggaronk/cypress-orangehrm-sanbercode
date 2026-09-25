@@ -25,21 +25,23 @@ describe('OrangeHRM Login & Dashboard Validation with API Intercepts', () => {
   });
 
   it('TC_INT_002 - Login Gagal (Password Salah) & Verifikasi Pesan i18n', () => {
-    cy.intercept('GET', '**/core/i18n/messages').as('getI18nMessages');
+    // Pasang intercept SEBELUM refresh/visit agar menangkap request bahasa dari awal
+    cy.intercept('GET', '**/core/i18n/messages*').as('getI18nMessages');
+    loginPage.visitLoginPage();
 
-    loginPage.inputUsername(loginData.invalidUser.username);
-    loginPage.inputPassword(loginData.invalidUser.wrongPassword);
-    loginPage.clickLogin();
-
-    cy.wait('@getI18nMessages').then((interception) => {
+    cy.wait('@getI18nMessages', { timeout: 15000 }).then((interception) => {
       expect([200, 304]).to.include(interception.response.statusCode);
     });
+
+    loginPage.inputUsername(loginData.validUser.username);
+    loginPage.inputPassword(loginData.invalidUser.wrongPassword);
+    loginPage.clickLogin();
 
     loginPage.elements.alertErrorMessage()
       .should('be.visible')
       .and('contain.text', loginData.messages.invalidCredentials);
   });
-  
+
   it('TC_INT_003 - Validasi Field Kosong Terpadu & Intercept Event', () => {
     cy.intercept('POST', '**/events/push').as('pushEvents');
 
