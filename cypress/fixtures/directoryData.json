@@ -1,0 +1,18 @@
+{
+  "search": {
+    "employeeName": "Peter",
+    "invalidName": "lebah ganteng",
+    "symbolName": "4^1*)$*",
+    "jobTitle": "Software Engineer",
+    "location": "Texas R&D"
+  },
+  "routes": {
+    "directoryUrl": "/directory/viewDirectory",
+    "employeesApi": "**/api/v2/directory/employees*"
+  },
+  "messages": {
+    "headerTitle": "Directory",
+    "invalid": "Invalid",
+    "noRecords": "No Records Found"
+  }
+}

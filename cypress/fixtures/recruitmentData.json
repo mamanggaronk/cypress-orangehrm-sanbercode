@@ -1,0 +1,35 @@
+{
+  "search": {
+    "candidateName": "sony junior",
+    "keywords": "QA",
+    "mismatchedStatus": "Shortlisted"
+  },
+  "newCandidate": {
+    "firstName": "Budi",
+    "middleName": "QA",
+    "lastName": "Automated",
+    "email": "budi.qa.automated@example.com",
+    "contactNumber": "081234567890",
+    "keywords": "Automation, Cypress, QA"
+  },
+  "invalidCandidate": {
+    "firstName": "Adam",
+    "invalidEmail": "duniasementara",
+    "alphaContactNumber": "jagonyaayam"
+  },
+  "routes": {
+    "recruitmentUrl": "/recruitment/viewCandidates",
+    "vacanciesUrl": "/recruitment/viewJobVacancy",
+    "addCandidateUrl": "/recruitment/addCandidate",
+    "candidatesApi": "**/api/v2/recruitment/candidates*",
+    "vacanciesApi": "**/api/v2/recruitment/vacancies*"
+  },
+  "messages": {
+    "headerTitle": "Recruitment",
+    "required": "Required",
+    "invalidEmail": "Expected format: admin@example.com",
+    "invalidContact": "Allows numbers and only + - / ( )",
+    "noRecords": "No Records Found",
+    "successSave": "Successfully Saved"
+  }
+}
